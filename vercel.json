@@ -3,16 +3,14 @@
   "builds": [
     {
       "src": "./package.js",
-      "use": "vercel-sapper",
-      "config": {
-              "include": ["posts"]
-        }
+      "use": "@vercel/node"
+
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "index.js"
+      "dest": "/"
     }
   ]
 }

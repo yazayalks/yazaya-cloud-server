@@ -1,14 +1,13 @@
 .idea
 # server
-node_modules
-package-lock.json
-files
-static
+/node_modules
+/package-lock.json
+/files
+/static
 # client
 /.pnp
 .pnp.js
-# production
-/build
+
 
 # misc
 .DS_Store
