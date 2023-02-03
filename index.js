@@ -37,10 +37,8 @@ app.use(cors(
 
 ));
 app.use(filePathMiddleware(path.join(__dirname)))
-// app.use(filePathMiddleware(path.resolve(__dirname, 'static')))
 app.use('/api/auth', authRouter)
 app.use('/api/files', fileRouter)
-// app.use(bodyParser.json());
 
 
 app.use(errorMiddleware);
