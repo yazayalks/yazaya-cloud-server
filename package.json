@@ -23,7 +23,8 @@
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.6.5",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "vercel": "^28.15.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"
