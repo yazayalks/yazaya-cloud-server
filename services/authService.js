@@ -1,6 +1,6 @@
 import UserModel from '../models/UserModel.js'
 import bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import mailService from './mailService.js';
 import TokenService from './tokenService.js';
 import UserDTO from "../dtos/UserDTO.js";
@@ -14,7 +14,7 @@ class AuthService {
         return UserModel.find();
     }
 
-    async registration(filePath, email, password) {
+    async registration(filePath, email, password, firstName, lastName) {
         const candidate = await UserModel.findOne({email});
 
         if (candidate) {
@@ -23,12 +23,12 @@ class AuthService {
         const hashPassword = await bcrypt.hash(password, 8);
         const activationLink = uuidv4();
 
-        const user = await UserModel.create({email, password: hashPassword, activationLink});
+        const user = await UserModel.create({email, password: hashPassword, activationLink, firstName: firstName,lastName : lastName });
         await mailService.sendActivationMail(email, activationLink);
         await user.save();
         console.log(user)
 
-        await FileService.createDir(filePath, new FileModel({user:user.id, name: ''}))
+        await FileService.createDir(filePath, new FileModel({user: user.id, name: ''}))
 
         const userDto = new UserDTO(user);
         const tokens = TokenService.generateTokens({...userDto});
@@ -36,6 +36,7 @@ class AuthService {
 
         return {...tokens, user: userDto}
     }
+
     async login(email, password) {
         const user = await UserModel.findOne({email})
         if (!user) {
@@ -57,12 +58,12 @@ class AuthService {
     }
 
     async refresh(refreshToken) {
-        if(!refreshToken) {
+        if (!refreshToken) {
             throw ApiError.UnauthorizedError();
         }
         const userData = TokenService.validateRefreshToken(refreshToken);
         const tokenFromDb = await TokenService.findToken(refreshToken);
-        if(!userData || !tokenFromDb) {
+        if (!userData || !tokenFromDb) {
             throw ApiError.UnauthorizedError();
         }
         const user = await UserModel.findById(userData.id);
