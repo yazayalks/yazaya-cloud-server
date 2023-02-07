@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 
 import fs from 'fs'
 import {v4 as uuidv4} from 'uuid'
-import path from "path";
+import globalPath from "path";
 
 
 class FileController {
@@ -21,7 +21,7 @@ class FileController {
                 file.path = name
                 await FileService.createDir(req.filePath, file)
             } else {
-                file.path = `${parentFile.path}\\${file.name}`
+                file.path = globalPath.posix.join(String(parentFile.path), String(file.name))
                 await FileService.createDir(req.filePath, file)
                 parentFile.childs.push(file.id)
                 await parentFile.save()
@@ -72,16 +72,15 @@ class FileController {
                 return next(ApiError.BadRequest('There no space on the disk'))
             }
 
-            await UserModel.findByIdAndUpdate({_id: user._id}, {$inc: { usedSpace: file.size} })
+            await UserModel.findByIdAndUpdate({_id: user._id}, {$inc: {usedSpace: file.size}})
 
 
             let path;
             if (parent) {
 
-
-                path = `${req.filePath}\\${user._id}\\${parent.path}\\${file.name}`
+                path = globalPath.posix.join(req.filePath, String(user._id), String(parent.path), String(file.name))
             } else {
-                path = `${req.filePath}\\${user._id}\\${file.name}`
+                path = globalPath.posix.join(req.filePath, String(user._id), String(file.name))
             }
 
             if (fs.existsSync(path)) {
@@ -93,7 +92,7 @@ class FileController {
             const type = file.name.split('.').pop()
             let filePath = file.name
             if (parent) {
-                filePath = parent.path + '\\' + file.name
+                filePath = globalPath.posix.join(String(parent.path), String(file.name))
             }
 
             const dbFile = new FileModel({
@@ -122,8 +121,9 @@ class FileController {
         try {
             console.log("downloadFile")
             const file = await FileModel.findOne({_id: req.query.id, user: req.user.id})
-            const path = FileService.getPath(file)
-
+            const path = FileService.getPath(req.filePath, file)
+            console.log("ЭЭЭТТООТ")
+            console.log(path)
             if (fs.existsSync(path)) {
                 return res.download(path, file.name)
             }
@@ -136,7 +136,7 @@ class FileController {
     async editSizeDir(parent, fileSize, next) {
         try {
             while (true) {
-                await FileModel.findByIdAndUpdate({_id: parent._id}, {$inc: { size: fileSize} })
+                await FileModel.findByIdAndUpdate({_id: parent._id}, {$inc: {size: fileSize}})
 
                 const nextParent = await FileModel.findOne({_id: parent.parent})
                 if (!nextParent) {
@@ -270,7 +270,7 @@ class FileController {
             const file = req.files.file
             const user = await UserModel.findOne({_id: req.user.id})
             const avatarName = uuidv4() + ".jpg"
-            file.mv(path.join(req.staticPath, avatarName))
+            file.mv(globalPath.posix.join(req.staticPath, avatarName))
             user.avatar = avatarName;
             await user.save();
             return res.json(user)
@@ -282,7 +282,7 @@ class FileController {
     async deleteAvatar(req, res, next) {
         try {
             const user = await UserModel.findOne({_id: req.user.id})
-            fs.unlinkSync(path.join(req.staticPath, user.avatar))
+            fs.unlinkSync(globalPath.posix.join(req.staticPath, user.avatar))
             user.avatar = null
             await user.save();
             return res.json({message: "Avatar was deleted"})

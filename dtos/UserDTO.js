@@ -2,6 +2,7 @@ export default class UserDTO {
     email;
     id;
     isActivated;
+    activationLink;
     firstName;
     lastName;
 
@@ -15,6 +16,7 @@ export default class UserDTO {
         this.usedSpace = model.usedSpace;
         this.avatar = model.avatar;
         this.files = model.files;
+        this.activationLink = model.activationLink;
     }
 }
 

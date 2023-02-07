@@ -1,7 +1,6 @@
 import UserModel from '../models/UserModel.js'
 import bcrypt from 'bcryptjs';
 import {v4 as uuidv4} from 'uuid';
-import mailService from './mailService.js';
 import TokenService from './tokenService.js';
 import UserDTO from "../dtos/UserDTO.js";
 import ApiError from "../exceptions/apiError.js";
@@ -18,13 +17,18 @@ class AuthService {
         const candidate = await UserModel.findOne({email});
 
         if (candidate) {
-            throw ApiError.BadRequest(`User with email ${email} already exist`)
+            if (candidate.isActivated) {
+                throw ApiError.BadRequest(`User with email ${email} already exist`)
+            }
+            if (!candidate.isActivated) {
+                throw ApiError.BadRequest(`User with email ${email} already exist, confirm your email `)
+            }
         }
         const hashPassword = await bcrypt.hash(password, 8);
         const activationLink = uuidv4();
 
-        const user = await UserModel.create({email, password: hashPassword, activationLink, firstName: firstName,lastName : lastName });
-        await mailService.sendActivationMail(email, activationLink);
+        const user = await UserModel.create({email, password: hashPassword, activationLink: activationLink, firstName: firstName, lastName : lastName });
+        // await mailService.sendActivationMail(email, `${process.env.API_HOST}/api/activate/${activationLink}`);
         await user.save();
         console.log(user)
 
@@ -41,7 +45,12 @@ class AuthService {
         const user = await UserModel.findOne({email})
         if (!user) {
             throw ApiError.BadRequest(`User with this email "${email}" not found`)
+        } else {
+            if (!user.isActivated) {
+                throw ApiError.BadRequest(`Confirm your email`)
+            }
         }
+
         const isPasswordEquals = await bcrypt.compare(password, user.password)
         if (!isPasswordEquals) {
             throw ApiError.BadRequest(`Wrong password entered`)
@@ -72,6 +81,16 @@ class AuthService {
 
         await TokenService.saveToken(userDto.id, tokens.refreshToken);
         return {...tokens, user: userDto}
+    }
+
+    async activate(activationLink) {
+        const user = await UserModel.findOne({activationLink})
+        if (!user) {
+            throw new Error('invalid activation link')
+        }
+        console.log(activationLink)
+        user.isActivated = true;
+        await user.save();
     }
 
 }

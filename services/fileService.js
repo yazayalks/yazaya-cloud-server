@@ -1,5 +1,5 @@
 import fs from 'fs';
-
+import globalPath from "path";
 
 class FileService{
 
@@ -31,7 +31,10 @@ class FileService{
     }
 
     getPath(filePath, file) {
-        return filePath + '\\' + file.user + '\\' + file.path
+        console.log(String(filePath))
+        console.log(String(file.user))
+        console.log(String(globalPath.posix.join(filePath, String(file.user))))
+        return globalPath.posix.join(filePath, String(file.user), String(file.path))
     }
 }
 
