@@ -68,6 +68,18 @@ class FileController {
             const parent = await FileModel.findOne({user: req.user.id, _id: req.body.parent})
             const user = await UserModel.findOne({_id: req.user.id})
 
+
+            const users = await UserModel.find();
+            let allUsedSpace = users.reduce(function (previousValue, currentValue) {
+                return {
+                    usedSpace: previousValue.usedSpace + currentValue.usedSpace,
+                }
+            });
+
+            if (allUsedSpace + file.size >= 10737418240) {
+                return next(ApiError.BadRequest('The server has run out of space, contact the administrator'))
+            }
+
             if (user.usedSpace + file.size > user.diskSpace) {
                 return next(ApiError.BadRequest('There no space on the disk'))
             }
