@@ -22,7 +22,6 @@ class FileService{
 
     deleteFile(req, file) {
         const path = this.getPath(req.filePath, file)
-
         if (file.type === 'dir') {
             fs.rmdirSync(path)
         } else {
@@ -31,9 +30,6 @@ class FileService{
     }
 
     getPath(filePath, file) {
-        console.log(String(filePath))
-        console.log(String(file.user))
-        console.log(String(globalPath.posix.join(filePath, String(file.user))))
         return globalPath.posix.join(filePath, String(file.user), String(file.path))
     }
 }

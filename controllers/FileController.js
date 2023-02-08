@@ -85,8 +85,6 @@ class FileController {
             }
 
             await UserModel.findByIdAndUpdate({_id: user._id}, {$inc: {usedSpace: file.size}})
-
-
             let path;
             if (parent) {
 
@@ -134,8 +132,6 @@ class FileController {
             console.log("downloadFile")
             const file = await FileModel.findOne({_id: req.query.id, user: req.user.id})
             const path = FileService.getPath(req.filePath, file)
-            console.log("ЭЭЭТТООТ")
-            console.log(path)
             if (fs.existsSync(path)) {
                 return res.download(path, file.name)
             }
@@ -177,7 +173,6 @@ class FileController {
                 await this.editSizeDir(parent, file.size * (-1))
             }
             if (file.type === 'dir') {
-
                 user.usedSpace = user.usedSpace - file.size
                 await this.deleteAllFilesInDir(req, file)
                 await user.save();
@@ -196,7 +191,6 @@ class FileController {
             user.usedSpace = user.usedSpace - size
             await user.save();
             await file.remove()
-
             return res.json({message: 'File was deleted'})
 
         } catch (e) {

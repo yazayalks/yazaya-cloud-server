@@ -31,7 +31,6 @@ class AuthService {
         // await mailService.sendActivationMail(email, `${process.env.API_HOST}/api/activate/${activationLink}`);
         await user.save();
         console.log(user)
-
         await FileService.createDir(filePath, new FileModel({user: user.id, name: ''}))
 
         const userDto = new UserDTO(user);
@@ -88,11 +87,9 @@ class AuthService {
         if (!user) {
             throw new Error('invalid activation link')
         }
-        console.log(activationLink)
         user.isActivated = true;
         await user.save();
     }
-
 }
 
 export default new AuthService();
